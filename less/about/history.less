@@ -1,10 +1,45 @@
 @import "./itemList.less";
+@import "./preferences.less";
+
+.historyCheckbox {
+  margin-right: 5px;
+}
+
+.aboutItemTitle {
+  max-width: 475px;
+  text-overflow: ellipsis;
+}
 
 .siteDetailsPage {
+  .prefTabContainer;
+  margin: 0;
+
   .siteDetailsPageContent {
-    .sticky-outer-wrapper {
-      min-width: 100%;
+    border-top: 0px;
+    margin-top: 15px;
+    .historyList {
       padding-top: 10px;
+      overflow: hidden;
+
+      .listItem {
+        display: flex;
+        height: 1rem;
+        padding-left: 5px;
+
+        &:hover {
+          background: #ffcc99;
+        }
+        .aboutListItem {
+          align-items: center;
+        }
+        .aboutItemLocation {
+          margin-left: 10px;
+        }
+        .aboutItemDate {
+          color: #aaa;
+          margin-right: 10px;
+        }
+      }
     }
   }
 }
