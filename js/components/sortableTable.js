@@ -16,16 +16,25 @@ class SortableTable extends ImmutableComponent {
   }
 
   render () {
-    var headings = []
-    var rows = []
+    let headings = []
+    let rows = []
+    let columnClassNames = []
+
     if (!this.props.headings || !this.props.rows) {
       return false
+    }
+    if (this.props.columnClassNames && this.props.columnClassNames.length === this.props.headings.length) {
+      this.props.columnClassNames.forEach((className) => columnClassNames.push(className))
     }
     for (let i = 0; i < this.props.rows.length; i++) {
       rows[i] = []
       for (let j = 0; j < this.props.headings.length; j++) {
         headings[j] = headings[j] || <th className='sort-header' data-l10n-id={this.props.headings[j]} />
-        rows[i][j] = <td data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
+        if (columnClassNames[j]) {
+          rows[i][j] = <td className={columnClassNames[j]} data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
+        } else {
+          rows[i][j] = <td data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
+        }
       }
       rows[i] = <tr className={this.props.isHover ? 'rowHover' : ''}
         onClick={this.props.hoverCallback.bind(this, rows[i])}>{rows[i]}</tr>

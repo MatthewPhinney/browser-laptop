@@ -11,6 +11,7 @@ const messages = require('../constants/messages')
 const settings = require('../constants/settings')
 const aboutActions = require('./aboutActions')
 const getSetting = require('../settings').getSetting
+const SortableTable = require('../components/sortableTable')
 const Button = require('../components/button')
 
 const ipc = window.chrome.ipc
@@ -45,7 +46,6 @@ class HistoryItem extends ImmutableComponent {
       data-context-menu-disable
       onDoubleClick={this.navigate.bind(this)}>
       <span className='aboutListItem' title={this.props.history.get('location')}>
-        <span className='aboutItemDate'>{new Date(this.props.history.get('lastAccessedTime')).toLocaleTimeString()}</span>
         <span className='aboutItemTitle'>
         {
           this.props.history.get('customTitle') || this.props.history.get('title')
@@ -72,10 +72,23 @@ class HistoryList extends ImmutableComponent {
 }
 
 class HistoryDay extends ImmutableComponent {
+  hoverCallback (rows) {
+    // TODO: possibly bind partition info?
+    // this.props.onChangeSetting(settings.DEFAULT_SEARCH_ENGINE, rows[1].props.children.props.name)
+  }
   render () {
     return <div>
       <div className='sectionTitle historyDayName'>{this.props.date}</div>
-      <HistoryList history={this.props.entries} />
+      <SortableTable headings={['time', 'title', 'domain']}
+        rows={this.props.entries.map((entry) => [
+          new Date(entry.get('lastAccessedTime')).toLocaleTimeString(),
+          entry.get('customTitle') || entry.get('title')
+            ? entry.get('customTitle') || entry.get('title')
+            : entry.get('location'),
+          urlutils.getHostname(entry.get('location'), true)
+        ])}
+        columnClassNames={['time', 'title', 'domain']}
+        isHover hoverCallback={this.hoverCallback.bind(this)} />
     </div>
   }
 }
@@ -167,14 +180,20 @@ class AboutHistory extends React.Component {
   }
   render () {
     return <div className='siteDetailsPage'>
-      <div data-l10n-id='history' className='sectionTitle' />
-      <input type='text' className='searchInput' id='historySearch' value={this.state.search} onChange={this.onChangeSearch} data-l10n-id='historySearch' />
-      {
-        this.state.search
-        ? <span onClick={this.onClearSearchText} className='fa fa-close searchInputClear'></span>
-        : null
-      }
-      <Button l10nId='clearBrowsingDataNow' className='primaryButton clearBrowsingDataButton' onClick={this.clearBrowsingDataNow} />
+      <div className='siteDetailsPageHeader'>
+        <div data-l10n-id='history' className='sectionTitle' />
+        <div className='headerActions'>
+          <div className='searchWrapper'>
+            <input type='text' className={this.state.search ? 'searchInput' : 'searchInput searchInputPlaceholder'} placeholder='&#xf002;' id='historySearch' value={this.state.search} onChange={this.onChangeSearch} data-l10n-id='historySearch' />
+            {
+              this.state.search
+              ? <span onClick={this.onClearSearchText} className='fa fa-close searchInputClear'></span>
+              : null
+            }
+          </div>
+          <Button l10nId='clearBrowsingDataNow' className='primaryButton clearBrowsingDataButton' onClick={this.clearBrowsingDataNow} />
+        </div>
+      </div>
 
       <div className='siteDetailsPageContent'>
       {
