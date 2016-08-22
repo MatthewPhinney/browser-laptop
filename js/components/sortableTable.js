@@ -23,9 +23,11 @@ class SortableTable extends ImmutableComponent {
     if (!this.props.headings || !this.props.rows) {
       return false
     }
+
     if (this.props.columnClassNames && this.props.columnClassNames.length === this.props.headings.length) {
       this.props.columnClassNames.forEach((className) => columnClassNames.push(className))
     }
+
     for (let i = 0; i < this.props.rows.length; i++) {
       rows[i] = []
       for (let j = 0; j < this.props.headings.length; j++) {
@@ -36,8 +38,28 @@ class SortableTable extends ImmutableComponent {
           rows[i][j] = <td data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
         }
       }
-      rows[i] = <tr className={this.props.isHover ? 'rowHover' : ''}
-        onClick={this.props.hoverCallback.bind(this, rows[i])}>{rows[i]}</tr>
+
+      // TODO: break out to functions
+
+      const handlerInput = this.props.rowObjects ? (typeof this.props.rowObjects[i].toJS === 'function' ? this.props.rowObjects[i].toJS() : this.props.rowObjects[i]) : rows[i]
+
+      const rowProps = {}
+      if (this.props.addHoverClass) {
+        rowProps.className = 'rowHover'
+      }
+      if (this.props.onClick) {
+        rowProps.onClick = this.props.onClick.bind(this, handlerInput)
+      }
+      if (this.props.onDoubleClick) {
+        rowProps.onDoubleClick = this.props.onDoubleClick.bind(this, handlerInput)
+      }
+      if (this.props.onContextMenu && this.props.contextMenuName) {
+        rowProps.onContextMenu = this.props.onContextMenu.bind(this, handlerInput, this.props.contextMenuName)
+      }
+
+      rows[i] = this.props.onContextMenu
+      ? <tr {...rowProps} data-context-menu-disable>{rows[i]}</tr>
+      : rows[i] = <tr {...rowProps}>{rows[i]}</tr>
     }
     return <table className='sortableTable sort'>
       <thead>
@@ -55,8 +77,9 @@ class SortableTable extends ImmutableComponent {
 SortableTable.defaultProps = {
   headings: React.PropTypes.array.isRequired,
   rows: React.PropTypes.array.isRequired,
-  isHover: React.PropTypes.bool,
-  hoverCallback: React.PropTypes.func
+  columnClassNames: React.PropTypes.array,
+  addHoverClass: React.PropTypes.bool,
+  contextMenuName: React.PropTypes.string
 }
 
 module.exports = SortableTable

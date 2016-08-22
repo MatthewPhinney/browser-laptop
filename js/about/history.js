@@ -22,59 +22,12 @@ require('../../less/about/siteDetails.less')
 require('../../less/about/history.less')
 require('../../node_modules/font-awesome/css/font-awesome.css')
 
-class HistoryItem extends ImmutableComponent {
-  navigate () {
-    aboutActions.newFrame({
-      location: this.props.history.get('location'),
-      partitionNumber: this.props.history.get('partitionNumber')
-    })
-  }
-  render () {
-    // Figure out the partition info display
-    let partitionNumberInfo
-    if (this.props.history.get('partitionNumber')) {
-      let l10nArgs = {
-        partitionNumber: this.props.history.get('partitionNumber')
-      }
-      partitionNumberInfo =
-        <span>&nbsp;(<span data-l10n-id='partitionNumber' data-l10n-args={JSON.stringify(l10nArgs)} />)</span>
-    }
-
-    return <div role='listitem'
-      className='listItem'
-      onContextMenu={aboutActions.contextMenu.bind(this, this.props.history.toJS(), 'history')}
-      data-context-menu-disable
-      onDoubleClick={this.navigate.bind(this)}>
-      <span className='aboutListItem' title={this.props.history.get('location')}>
-        <span className='aboutItemTitle'>
-        {
-          this.props.history.get('customTitle') || this.props.history.get('title')
-          ? this.props.history.get('customTitle') || this.props.history.get('title')
-          : this.props.history.get('location')
-        }
-        </span>
-        {partitionNumberInfo}
-        <span className='aboutItemLocation'>{urlutils.getHostname(this.props.history.get('location'), true)}</span>
-      </span>
-    </div>
-  }
-}
-
-class HistoryList extends ImmutableComponent {
-  render () {
-    return <list className='siteDetailsList'>
-    {
-      this.props.history.map((entry) =>
-        <HistoryItem history={entry} />)
-    }
-    </list>
-  }
-}
-
 class HistoryDay extends ImmutableComponent {
-  hoverCallback (rows) {
-    // TODO: possibly bind partition info?
-    // this.props.onChangeSetting(settings.DEFAULT_SEARCH_ENGINE, rows[1].props.children.props.name)
+  navigate (entry) {
+    aboutActions.newFrame({
+      location: entry.get('location'),
+      partitionNumber: entry.get('partitionNumber')
+    })
   }
   render () {
     return <div>
@@ -87,8 +40,12 @@ class HistoryDay extends ImmutableComponent {
             : entry.get('location'),
           urlutils.getHostname(entry.get('location'), true)
         ])}
+        rowObjects={this.props.entries}
         columnClassNames={['time', 'title', 'domain']}
-        isHover hoverCallback={this.hoverCallback.bind(this)} />
+        addHoverClass
+        onDoubleClick={this.navigate}
+        contextMenuName='history'
+        onContextMenu={aboutActions.contextMenu} />
     </div>
   }
 }
@@ -198,9 +155,10 @@ class AboutHistory extends React.Component {
       <div className='siteDetailsPageContent'>
       {
         this.state.search
-        ? <list className='historyList'>
-          <HistoryList history={this.searchedSiteDetails(this.state.search, this.state.history)} />
-        </list>
+        ? <GroupedHistoryList
+          languageCodes={this.state.languageCodes}
+          settings={this.state.settings}
+          history={this.searchedSiteDetails(this.state.search, this.state.history)} />
         : <GroupedHistoryList
           languageCodes={this.state.languageCodes}
           settings={this.state.settings}
