@@ -14,7 +14,44 @@ class SortableTable extends ImmutableComponent {
   componentDidMount (event) {
     return tableSort(document.getElementsByClassName('sortableTable')[0])
   }
-
+  get hasClickHandler () {
+    return typeof this.props.onClick === 'function'
+  }
+  get hasColumnClassNames () {
+    return this.props.columnClassNames &&
+      this.props.columnClassNames.length === this.props.headings.length
+  }
+  get hasDoubleClickHandler () {
+    return typeof this.props.onDoubleClick === 'function'
+  }
+  get hasContextMenu () {
+    return typeof this.props.onContextMenu === 'function' &&
+      typeof this.props.contextMenuName === 'string'
+  }
+  getHandlerInput (rows, index) {
+    if (this.props.rowObjects) {
+      return typeof this.props.rowObjects[index].toJS === 'function'
+        ? this.props.rowObjects[index].toJS()
+        : this.props.rowObjects[index]
+    }
+    return rows[index]
+  }
+  getRowAttributes (handlerInput, index) {
+    const rowAttributes = {}
+    if (this.props.addHoverClass) {
+      rowAttributes.className = 'rowHover'
+    }
+    if (this.hasClickHandler) {
+      rowAttributes.onClick = this.props.onClick.bind(this, handlerInput)
+    }
+    if (this.hasDoubleClickHandler) {
+      rowAttributes.onDoubleClick = this.props.onDoubleClick.bind(this, handlerInput)
+    }
+    if (this.hasContextMenu) {
+      rowAttributes.onContextMenu = this.props.onContextMenu.bind(this, handlerInput, this.props.contextMenuName)
+    }
+    return rowAttributes
+  }
   render () {
     let headings = []
     let rows = []
@@ -24,7 +61,7 @@ class SortableTable extends ImmutableComponent {
       return false
     }
 
-    if (this.props.columnClassNames && this.props.columnClassNames.length === this.props.headings.length) {
+    if (this.hasColumnClassNames) {
       this.props.columnClassNames.forEach((className) => columnClassNames.push(className))
     }
 
@@ -32,34 +69,17 @@ class SortableTable extends ImmutableComponent {
       rows[i] = []
       for (let j = 0; j < this.props.headings.length; j++) {
         headings[j] = headings[j] || <th className='sort-header' data-l10n-id={this.props.headings[j]} />
-        if (columnClassNames[j]) {
-          rows[i][j] = <td className={columnClassNames[j]} data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
-        } else {
-          rows[i][j] = <td data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
-        }
+        rows[i][j] = typeof columnClassNames[j] === 'string'
+          ? <td className={columnClassNames[j]} data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
+          : <td data-sort={this.props.rows[i][j]}>{this.props.rows[i][j] === true ? '✕' : this.props.rows[i][j]}</td>
       }
 
-      // TODO: break out to functions
+      const handlerInput = this.getHandlerInput(rows, i)
+      const rowAttributes = this.getRowAttributes(handlerInput, i)
 
-      const handlerInput = this.props.rowObjects ? (typeof this.props.rowObjects[i].toJS === 'function' ? this.props.rowObjects[i].toJS() : this.props.rowObjects[i]) : rows[i]
-
-      const rowProps = {}
-      if (this.props.addHoverClass) {
-        rowProps.className = 'rowHover'
-      }
-      if (this.props.onClick) {
-        rowProps.onClick = this.props.onClick.bind(this, handlerInput)
-      }
-      if (this.props.onDoubleClick) {
-        rowProps.onDoubleClick = this.props.onDoubleClick.bind(this, handlerInput)
-      }
-      if (this.props.onContextMenu && this.props.contextMenuName) {
-        rowProps.onContextMenu = this.props.onContextMenu.bind(this, handlerInput, this.props.contextMenuName)
-      }
-
-      rows[i] = this.props.onContextMenu
-      ? <tr {...rowProps} data-context-menu-disable>{rows[i]}</tr>
-      : rows[i] = <tr {...rowProps}>{rows[i]}</tr>
+      rows[i] = rowAttributes.onContextMenu
+      ? <tr {...rowAttributes} data-context-menu-disable>{rows[i]}</tr>
+      : rows[i] = <tr {...rowAttributes}>{rows[i]}</tr>
     }
     return <table className='sortableTable sort'>
       <thead>
