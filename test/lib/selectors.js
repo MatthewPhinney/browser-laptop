@@ -43,5 +43,7 @@ module.exports = {
   backButton: '.backforward .back',
   forwardButton: '.backforward .forward',
   clearBrowsingDataPanel: '.clearBrowsingDataPanel',
-  saveButton: '[data-l10n-id="save"]'
+  saveButton: '[data-l10n-id="save"]',
+  autofillAddressPanel: '.autofillAddressPanel',
+  autofillCreditCardPanel: '.autofillCreditCardPanel'
 }
