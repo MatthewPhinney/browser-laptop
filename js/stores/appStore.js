@@ -551,7 +551,7 @@ const handleAppAction = (action) => {
             return Immutable.is(address, action.originalDetail.get('guid'))
           }))
         if (action.originalDetail.get('guid') !== undefined) {
-          Filtering.removeAutofillAddress(action.originalDetail.get('guid'))
+          Filtering.removeAutofillAddress(action.originalDetail.get('guid').toJS())
         }
 
         let addresses = appState.getIn(['autofill', 'addresses'])
@@ -580,7 +580,7 @@ const handleAppAction = (action) => {
             return Immutable.is(card, action.originalDetail.get('guid'))
           }))
         if (action.originalDetail.get('guid') !== undefined) {
-          Filtering.removeAutofillCreditCard(action.originalDetail.get('guid'))
+          Filtering.removeAutofillCreditCard(action.originalDetail.get('guid').toJS())
         }
 
         let creditCards = appState.getIn(['autofill', 'creditCards'])
